@@ -216,7 +216,8 @@ def downloader():
                     original_filename = info.get('title', 'youtube_video') + ".mp4"
                 
                 with open(temp_filepath, 'rb') as f_read:
-                    blob_data = vercel_blob.put(original_filename, f_read)
+                    file_content_bytes = f_read.read() # Leer el contenido a bytes
+                    blob_data = vercel_blob.put(original_filename, file_content_bytes)
                 new_file = File(filename=blob_data['url'], category=category, user_id=session['user_id'])
                 db.session.add(new_file)
                 db.session.commit()
@@ -246,7 +247,8 @@ def downloader():
                         
                         original_filename = f"tiktok_{int(time.time())}.mp4"
                         with open(temp_filepath, 'rb') as f_read:
-                            blob_data = vercel_blob.put(original_filename, f_read)
+                            file_content_bytes = f_read.read() # Leer el contenido a bytes
+                            blob_data = vercel_blob.put(original_filename, file_content_bytes)
                         new_file = File(filename=blob_data['url'], category=category, user_id=session['user_id'])
                         db.session.add(new_file)
                         db.session.commit()

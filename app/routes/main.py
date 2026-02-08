@@ -9,6 +9,7 @@ import yt_dlp
 import requests
 import os 
 import tempfile
+import time # Importación añadida
 
 
 main_bp = Blueprint('main', __name__)

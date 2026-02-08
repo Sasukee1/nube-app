@@ -75,7 +75,7 @@ def upload_file():
 
     try:
         # La función put sube el contenido del stream
-        blob_data = vercel_blob.put(original_filename, file_to_upload.stream)
+        blob_data = vercel_blob.put(original_filename, file_to_upload.read())
 
         new_file = File(
             filename=blob_data['url'], # Almacenamos la URL del blob

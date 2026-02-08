@@ -28,7 +28,8 @@ class File(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     # Usamos un float timestamp como ID en la versión anterior, aquí usaremos Integer autoincremental
     # pero guardamos un timestamp de subida.
-    filename = db.Column(db.String(255), nullable=False)
+    blob_url = db.Column(db.String(255), nullable=False)
+    original_filename = db.Column(db.String(255), nullable=False)
     category = db.Column(db.String(50), default='general')
     upload_date = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))

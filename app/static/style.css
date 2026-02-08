@@ -415,6 +415,16 @@ small {
     margin-left: auto;
 }
 
+/* Estilo específico para mensajes de administrador */
+.admin-message {
+    background: rgba(255, 215, 0, 0.1); /* Un toque dorado/amarillo */
+    border-left: 3px solid var(--accent);
+}
+
+.admin-message .fas.fa-shield-alt {
+    color: var(--accent); /* Color del escudo */
+}
+
 /* Specific: File Preview */
 .file-card {
     position: relative;

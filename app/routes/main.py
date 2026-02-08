@@ -78,7 +78,8 @@ def upload_file():
         blob_data = vercel_blob.put(original_filename, file_to_upload.read())
 
         new_file = File(
-            filename=blob_data['url'], # Almacenamos la URL del blob
+            original_filename=original_filename, # Nombre original
+            blob_url=blob_data['url'],           # URL de Vercel
             category=category,
             user_id=session['user_id']
         )
@@ -97,12 +98,12 @@ def download_file(file_id):
 
     file_to_download = File.query.get_or_404(file_id)
 
-    if not file_to_download.filename: # filename ahora es la URL del blob
-        flash('Error: Archivo no encontrado en el almacenamiento.')
+    if not file_to_download.blob_url:
+        flash('Error: URL del archivo no encontrada en el almacenamiento.')
         return redirect(url_for('main.index'))
     
     # Redirigir directamente a la URL del blob para la descarga
-    return redirect(file_to_download.filename)
+    return redirect(file_to_download.blob_url)
 
 @main_bp.route('/delete_file/<int:file_id>')
 def delete_file(file_id):
@@ -116,8 +117,8 @@ def delete_file(file_id):
         return redirect(url_for('main.index'))
         
     try:
-        if file.filename: # file.filename es la URL del blob
-            vercel_blob.delete(file.filename)
+        if file.blob_url: # Usamos blob_url para la eliminación
+            vercel_blob.delete(file.blob_url)
             
         db.session.delete(file)
         db.session.commit()
@@ -152,6 +153,7 @@ def get_messages():
     msgs_data = [{
         'id': m.id,
         'user': m.author.username if m.author else 'Usuario eliminado',
+        'role': m.author.role if m.author else 'user',
         'text': m.content,
         'edited': m.edited,
         'timestamp': m.timestamp.strftime('%H:%M')
@@ -218,7 +220,7 @@ def downloader():
                 with open(temp_filepath, 'rb') as f_read:
                     file_content_bytes = f_read.read() # Leer el contenido a bytes
                     blob_data = vercel_blob.put(original_filename, file_content_bytes)
-                new_file = File(filename=blob_data['url'], category=category, user_id=session['user_id'])
+                new_file = File(original_filename=original_filename, blob_url=blob_data['url'], category=category, user_id=session['user_id'])
                 db.session.add(new_file)
                 db.session.commit()
                 flash(f'Video de YouTube descargado y subido: {original_filename}')
@@ -249,7 +251,7 @@ def downloader():
                         with open(temp_filepath, 'rb') as f_read:
                             file_content_bytes = f_read.read() # Leer el contenido a bytes
                             blob_data = vercel_blob.put(original_filename, file_content_bytes)
-                        new_file = File(filename=blob_data['url'], category=category, user_id=session['user_id'])
+                        new_file = File(original_filename=original_filename, blob_url=blob_data['url'], category=category, user_id=session['user_id'])
                         db.session.add(new_file)
                         db.session.commit()
                         flash('Video de TikTok descargado y subido.')

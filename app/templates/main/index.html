@@ -42,10 +42,10 @@
                 <div class="file-info">
                     <div
                         style="font-weight: bold; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                        {{ file.filename }}</div>
+                        {{ file.original_filename }}</div>
                     <div
                         style="display: flex; justify-content: space-between; font-size: 0.8em; color: var(--text-secondary);">
-                        <span>{{ file.author.username if file.author else 'Unknown' }}</span>
+                        <span>{{ file.author.username if file.author else 'Unknown' }} {% if file.author and file.author.role == 'admin' %}<i class="fas fa-shield-alt" title="Administrador"></i>{% endif %}</span>
                         <span>{{ file.upload_date.strftime('%d/%m') }}</span>
                     </div>
                 </div>
@@ -131,7 +131,12 @@
             chatBox.innerHTML = '';
             data.forEach(msg => {
                 const div = document.createElement('div');
-                div.className = `message ${msg.user === currentUser ? 'self' : ''}`;
+                div.className = `message ${msg.user === currentUser ? 'self' : ''} ${msg.role === 'admin' ? 'admin-message' : ''}`;
+
+                let adminIcon = '';
+                if (msg.role === 'admin') {
+                    adminIcon = '<i class="fas fa-shield-alt" title="Administrador" style="margin-left: 5px;"></i>';
+                }
 
                 let actions = '';
                 if (isAdmin) {
@@ -143,7 +148,7 @@
                 }
 
                 div.innerHTML = `
-                    <div style="font-weight: bold; font-size: 0.8em; margin-bottom: 2px; color: var(--accent);">${msg.user} <span style="font-weight: normal; color: var(--text-secondary); float: right;">${msg.timestamp}</span></div>
+                    <div style="font-weight: bold; font-size: 0.8em; margin-bottom: 2px; color: var(--accent);">${msg.user}${adminIcon} <span style="font-weight: normal; color: var(--text-secondary); float: right;">${msg.timestamp}</span></div>
                     <div>${msg.text}</div>
                     ${actions}
                 `;

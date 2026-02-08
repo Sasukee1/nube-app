@@ -78,7 +78,6 @@ def upload_file():
         blob_data = vercel_blob.put(
             original_filename,
             file_to_upload.stream,
-            content_type=file_to_upload.content_type,
             add_random_suffix=True
         )
 
@@ -224,10 +223,8 @@ def downloader():
                     blob_data = vercel_blob.put(
                         original_filename,
                         f_read,
-                        content_type='video/mp4',
-                        add_random_suffix=True
-                    )
-                
+                                        add_random_suffix=True
+                                    )                
                 new_file = File(filename=blob_data['url'], category=category, user_id=session['user_id'])
                 db.session.add(new_file)
                 db.session.commit()
@@ -260,10 +257,8 @@ def downloader():
                             blob_data = vercel_blob.put(
                                 original_filename,
                                 f_read,
-                                content_type='video/mp4',
-                                add_random_suffix=True
-                            )
-                        
+                                                add_random_suffix=True
+                                            )                        
                         new_file = File(filename=blob_data['url'], category=category, user_id=session['user_id'])
                         db.session.add(new_file)
                         db.session.commit()

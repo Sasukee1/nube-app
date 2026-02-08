@@ -77,8 +77,9 @@ def upload_file():
         # La función put sube el contenido del stream
         blob_data = vercel_blob.put(
             original_filename,
-            body=file_to_upload.stream,
-            content_type=file_to_upload.content_type
+            file_to_upload.stream,
+            content_type=file_to_upload.content_type,
+            add_random_suffix=True
         )
 
         new_file = File(
@@ -213,17 +214,18 @@ def downloader():
                     'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
                     'outtmpl': temp_filepath, # Descargar al archivo temporal
                     'noplaylist': True,
-                    'external_downloader': 'aria2c', 
-                    'external_downloader_args': ['-x', '16', '-s', '16', '-k', '1M'],
+
                 }
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                     info = ydl.extract_info(video_url, download=True)
                     original_filename = info.get('title', 'youtube_video') + ".mp4"
                 
                 with open(temp_filepath, 'rb') as f_read:
-                                blob_data = vercel_blob.put(
-                                    original_filename,                        body=f_read,
-                        content_type='video/mp4'
+                    blob_data = vercel_blob.put(
+                        original_filename,
+                        f_read,
+                        content_type='video/mp4',
+                        add_random_suffix=True
                     )
                 
                 new_file = File(filename=blob_data['url'], category=category, user_id=session['user_id'])
@@ -255,9 +257,11 @@ def downloader():
                         
                         original_filename = f"tiktok_{int(time.time())}.mp4"
                         with open(temp_filepath, 'rb') as f_read:
-                                        blob_data = vercel_blob.put(
-                                            original_filename,                                body=f_read,
-                                content_type='video/mp4'
+                            blob_data = vercel_blob.put(
+                                original_filename,
+                                f_read,
+                                content_type='video/mp4',
+                                add_random_suffix=True
                             )
                         
                         new_file = File(filename=blob_data['url'], category=category, user_id=session['user_id'])

@@ -75,11 +75,7 @@ def upload_file():
 
     try:
         # La función put sube el contenido del stream
-        blob_data = vercel_blob.put(
-            original_filename,
-            file_to_upload.stream,
-            add_random_suffix=True
-        )
+        blob_data = vercel_blob.put(original_filename, file_to_upload.stream)
 
         new_file = File(
             filename=blob_data['url'], # Almacenamos la URL del blob
@@ -220,12 +216,7 @@ def downloader():
                     original_filename = info.get('title', 'youtube_video') + ".mp4"
                 
                 with open(temp_filepath, 'rb') as f_read:
-                    blob_data = vercel_blob.put(
-                        original_filename,
-                        f_read,
-                                        add_random_suffix=True
-                                    )                
-                new_file = File(filename=blob_data['url'], category=category, user_id=session['user_id'])
+                                                blob_data = vercel_blob.put(original_filename, f_read)                new_file = File(filename=blob_data['url'], category=category, user_id=session['user_id'])
                 db.session.add(new_file)
                 db.session.commit()
                 flash(f'Video de YouTube descargado y subido: {original_filename}')
@@ -254,12 +245,7 @@ def downloader():
                         
                         original_filename = f"tiktok_{int(time.time())}.mp4"
                         with open(temp_filepath, 'rb') as f_read:
-                            blob_data = vercel_blob.put(
-                                original_filename,
-                                f_read,
-                                                add_random_suffix=True
-                                            )                        
-                        new_file = File(filename=blob_data['url'], category=category, user_id=session['user_id'])
+                                                        blob_data = vercel_blob.put(original_filename, f_read)                        new_file = File(filename=blob_data['url'], category=category, user_id=session['user_id'])
                         db.session.add(new_file)
                         db.session.commit()
                         flash('Video de TikTok descargado y subido.')

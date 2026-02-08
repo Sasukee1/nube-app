@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Hub</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="{{ current_theme }}-theme">
+    <div class="container">
+        <div class="header">
+            <h1>📱 Media Hub</h1>
+            <div class="user-info">
+                <a href="{{ url_for('downloader') }}" class="btn-view">Descargador</a>
+                <span>Hola, {{ username }}</span>
+                {% if role == 'admin' %}
+                <a href="{{ url_for('admin_panel') }}" class="btn-view">Panel Admin</a>
+                {% endif %}
+                <a href="{{ url_for('logout') }}" class="btn-logout">Salir</a>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for message in messages %}
+                        <div class="flash">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="nav-categories">
+            <a href="{{ url_for('index', category_name='all') }}" class="{{ 'active' if current_category == 'all' }}">Todas</a>
+            {% for cat in categories %}
+            <a href="{{ url_for('index', category_name=cat) }}" class="{{ 'active' if current_category == cat }}">{{ cat | capitalize }}</a>
+            {% endfor %}
+        </div>
+        
+        <div class="upload-section">
+            <form action="/upload" method="post" enctype="multipart/form-data">
+                <input type="file" name="file" required>
+                <input type="text" name="category" list="category-list" placeholder="Categoría (ej. fotos, videos)">
+                <datalist id="category-list">
+                    {% for cat in categories %}
+                    <option value="{{ cat }}">
+                    {% endfor %}
+                </datalist>
+                <button type="submit">Subir Archivo</button>
+            </form>
+        </div>
+
+        <div class="chat-section">
+            <h2>Chat Local</h2>
+            <div class="chat-box">
+                {% for msg in messages %}
+                <div class="message">
+                    <span>
+                        <strong>{{ msg.user }}:</strong> {{ msg.text }}
+                        {% if msg.edited %}
+                        <em class="edited-indicator">(editado)</em>
+                        {% endif %}
+                    </span>
+                    <span class="message-actions">
+                        {% if role == 'admin' %}
+                        <a href="#" class="btn-edit-msg" onclick="event.preventDefault(); editMessage('{{ msg.id }}', '{{ msg.text }}')">Editar</a>
+                        <a href="#" class="btn-del-msg" onclick="event.preventDefault(); deleteMessage('{{ msg.id }}')">X</a>
+                        {% endif %}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            <form action="/send_message" method="post" class="message-form">
+                <input type="text" name="message" placeholder="Escribe un mensaje..." required>
+                <button type="submit">Enviar</button>
+            </form>
+        </div>
+
+        <div class="gallery">
+            {% for f_meta in files %}
+            {% set ext = f_meta.filename.lower() %}
+            <div class="card">
+                <div class="preview-box">
+                    {% if ext.endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp')) %}
+                        <img src="{{ url_for('download_file', filename=f_meta.filename) }}" alt="Preview">
+                    
+                    {% elif ext.endswith(('.mp4', '.webm', '.ogg')) %}
+                        <video controls preload="metadata">
+                            <source src="{{ url_for('download_file', filename=f_meta.filename) }}" type="video/mp4">
+                            Tu navegador no soporta video.
+                        </video>
+
+                    {% elif ext.endswith('.pdf') %}
+                        <div class="pdf-icon">📕</div>
+                    
+                    {% else %}
+                        <div class="pdf-icon">📄</div>
+                    {% endif %}
+                </div>
+
+                <div class="info">
+                    <span class="filename">{{ f_meta.filename }}</span>
+                    <span class="uploader">Subido por: {{ f_meta.uploader }}</span>
+                </div>
+
+                <div class="actions">
+                    <a href="{{ url_for('download_file', filename=f_meta.filename) }}" target="_blank" class="btn btn-view">
+                        {% if ext.endswith('.pdf') %}Abrir PDF{% else %}Ver / Descargar{% endif %}
+                    </a>
+                    {% if role == 'admin' or f_meta.uploader == username %}
+                    <a href="{{ url_for('delete_file', file_id=f_meta.id) }}" class="btn-del" onclick="return confirm('¿Seguro que quieres eliminar este archivo?')">🗑️</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        const chatBox = document.querySelector('.chat-box');
+        const messageForm = document.querySelector('.message-form');
+        const messageInput = document.querySelector('input[name="message"]');
+        const userRole = '{{ role }}';
+
+        // Función para renderizar los mensajes
+        function renderMessages(msgs) {
+            chatBox.innerHTML = '';
+            for (const msg of msgs) {
+                const messageEl = document.createElement('div');
+                messageEl.className = 'message';
+
+                let editedIndicator = msg.edited ? `<em class="edited-indicator">(editado)</em>` : '';
+                
+                let actions = '';
+                if (userRole === 'admin') {
+                    const editText = escapeHTML(msg.text);
+                    actions = `
+                        <span class="message-actions">
+                            <a href="#" class="btn-edit-msg" onclick="event.preventDefault(); editMessage('${msg.id}', \`${editText}\`)">Editar</a>
+                            <a href="#" class="btn-del-msg" onclick="event.preventDefault(); deleteMessage('${msg.id}')">X</a>
+                        </span>
+                    `;
+                }
+
+                messageEl.innerHTML = `
+                    <span>
+                        <strong>${escapeHTML(msg.user)}:</strong> ${escapeHTML(msg.text)}
+                        ${editedIndicator}
+                    </span>
+                    ${actions}
+                `;
+                chatBox.appendChild(messageEl);
+            }
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Función para obtener mensajes
+        async function fetchMessages() {
+            try {
+                const response = await fetch('/get_messages');
+                if (!response.ok) throw new Error('Error fetching messages');
+                const msgs = await response.json();
+                renderMessages(msgs);
+            } catch (error) {
+                console.error(error);
+            }
+        }
+        
+        // Función para borrar un mensaje
+        async function deleteMessage(messageId) {
+            if (!confirm('¿Estás seguro de que quieres borrar este mensaje?')) return;
+            try {
+                const response = await fetch(`/delete_message/${messageId}`, { method: 'POST' });
+                if (!response.ok) throw new Error('Error deleting message');
+                fetchMessages();
+            } catch (error) {
+                console.error(error);
+                alert('No se pudo borrar el mensaje.');
+            }
+        }
+
+        // Función para editar un mensaje
+        async function editMessage(messageId, currentText) {
+            const newText = prompt('Edita el mensaje:', currentText);
+            if (newText === null || newText.trim() === '' || newText === currentText) return;
+
+            try {
+                const response = await fetch(`/edit_message/${messageId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `new_text=${encodeURIComponent(newText)}`
+                });
+                if (!response.ok) throw new Error('Error editing message');
+                fetchMessages();
+            } catch (error) {
+                console.error(error);
+                alert('No se pudo editar el mensaje.');
+            }
+        }
+
+        // Interceptar el envío del formulario
+        messageForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const message = messageInput.value;
+            if (!message) return;
+            try {
+                const response = await fetch('/send_message', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `message=${encodeURIComponent(message)}`
+                });
+                if (!response.ok) throw new Error('Error sending message');
+                messageInput.value = '';
+                fetchMessages();
+            } catch (error) {
+                console.error(error);
+            }
+        });
+        
+        function escapeHTML(str) {
+            const p = document.createElement('p');
+            p.textContent = str;
+            return p.innerHTML;
+        }
+
+        fetchMessages();
+        setInterval(fetchMessages, 2000);
+    </script>
+</body>
+</html>

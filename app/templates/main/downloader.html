@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Descargador{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: auto;">
+    <div class="card">
+        <h2><i class="fas fa-video"></i> Descargador de Video</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 20px;">Soporta YouTube y TikTok. Los videos se guardarán
+            en la galería.</p>
+
+        <form method="post" id="download-form">
+            <input type="url" name="url" class="form-input" placeholder="Pega el enlace aquí..." required>
+
+            <input type="text" name="category" class="form-input" list="category-list"
+                placeholder="Categoría (opcional)">
+            <datalist id="category-list">
+                {% for cat in categories %}
+                <option value="{{ cat }}">
+                    {% endfor %}
+            </datalist>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%;"
+                onclick="this.innerHTML='<i class=\'fas fa-spinner fa-spin\'></i> Descargando...';">
+                <i class="fas fa-download"></i> Descargar
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

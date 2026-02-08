@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Panel Admin{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: auto;">
+    <h1>Panel de Administración</h1>
+
+    <div class="card">
+        <h3><i class="fas fa-palette"></i> Configuración de Tema</h3>
+        <form action="{{ url_for('admin.set_theme') }}" method="post"
+            style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <label for="theme" style="font-weight: bold;">Seleccionar Tema Global:</label>
+            <select name="theme" id="theme" class="form-input" style="width: auto; margin-bottom: 0;">
+                <option value="theme-dark" {% if current_theme=='theme-dark' %}selected{% endif %}>Oscuro (Default)
+                </option>
+                <option value="theme-light" {% if current_theme=='theme-light' %}selected{% endif %}>Claro</option>
+                <option value="theme-navidad" {% if current_theme=='theme-navidad' %}selected{% endif %}>Navideño
+                </option>
+                <option value="theme-colombia" {% if current_theme=='theme-colombia' %}selected{% endif %}>Fiestas
+                    Patrias (Colombia)</option>
+                <option value="theme-halloween" {% if current_theme=='theme-halloween' %}selected{% endif %}>Halloween
+                </option>
+                <option value="theme-socialista" {% if current_theme=='theme-socialista' %}selected{% endif %}>La
+                    Internacional</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Aplicar</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h3><i class="fas fa-users"></i> Gestión de Usuarios</h3>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                <thead>
+                    <tr style="text-align: left; border-bottom: 2px solid var(--border);">
+                        <th style="padding: 10px;">ID</th>
+                        <th style="padding: 10px;">Usuario</th>
+                        <th style="padding: 10px;">Rol</th>
+                        <th style="padding: 10px;">Estado</th>
+                        <th style="padding: 10px;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr style="border-bottom: 1px solid var(--border);">
+                        <td style="padding: 10px;">{{ user.id }}</td>
+                        <td style="padding: 10px; font-weight: bold;">{{ user.username }}</td>
+                        <td style="padding: 10px;">
+                            <form action="{{ url_for('admin.change_role', user_id=user.id) }}" method="post"
+                                style="display: flex; gap: 5px;">
+                                <select name="role" onchange="this.form.submit()"
+                                    style="padding: 5px; border-radius: 4px; background: var(--bg-color); color: var(--text-primary); border: 1px solid var(--border);">
+                                    <option value="user" {% if user.role=='user' %}selected{% endif %}>User</option>
+                                    <option value="admin" {% if user.role=='admin' %}selected{% endif %}>Admin</option>
+                                </select>
+                            </form>
+                        </td>
+                        <td style="padding: 10px;">
+                            <span
+                                style="padding: 4px 8px; border-radius: 4px; font-size: 0.8em; background: {% if user.status == 'active' %}var(--success){% else %}var(--danger){% endif %}; color: #000; font-weight: bold;">
+                                {{ user.status }}
+                            </span>
+                        </td>
+                        <td style="padding: 10px;">
+                            <div style="display: flex; gap: 5px;">
+                                {% if user.username != 'ADMIN' %}
+                                {% if user.status == 'active' %}
+                                <a href="{{ url_for('admin.ban_user', user_id=user.id) }}" class="btn"
+                                    style="background: var(--danger); padding: 5px 10px; font-size: 0.8em;">Ban</a>
+                                {% else %}
+                                <a href="{{ url_for('admin.unban_user', user_id=user.id) }}" class="btn"
+                                    style="background: var(--success); padding: 5px 10px; font-size: 0.8em;">Unban</a>
+                                {% endif %}
+
+                                <form action="{{ url_for('admin.delete_user', user_id=user.id) }}" method="post"
+                                    onsubmit="return confirm('¿Borrar permanentemente a {{ user.username }}?');"
+                                    style="display: inline;">
+                                    <button type="submit" class="btn"
+                                        style="background: #555; padding: 5px 10px; font-size: 0.8em;"><i
+                                            class="fas fa-trash"></i></button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Bloc de Notas{% endblock %}
+
+{% block content %}
+<div class="grid grid-2" style="grid-template-columns: 1fr 2fr;">
+
+    <!-- Nueva Nota -->
+    <div class="card" style="height: fit-content;">
+        <h3><i class="fas fa-plus"></i> Nueva Nota</h3>
+        <form method="post">
+            <input type="text" name="title" class="form-input" placeholder="Título" required>
+            <textarea name="content" class="form-input" rows="10" placeholder="Escribe aquí..." required
+                style="resize: vertical;"></textarea>
+            <div style="margin-bottom: 15px;">
+                <label style="color: var(--text-secondary); cursor: pointer;">
+                    <input type="checkbox" name="is_public"> Pública (visible para todos)
+                </label>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width: 100%">Guardar Nota</button>
+        </form>
+    </div>
+
+    <!-- Lista de Notas -->
+    <div class="grid grid-auto">
+        {% for note in notes %}
+        <div class="card" style="position: relative;">
+            <a href="{{ url_for('tools.delete_note', note_id=note.id) }}"
+                style="position: absolute; top: 15px; right: 15px; color: var(--text-secondary);"
+                onclick="return confirm('¿Borrar nota?')"><i class="fas fa-times"></i></a>
+            <h3 style="margin-right: 20px; color: var(--accent);">{{ note.title }}</h3>
+            <small style="display: block; margin-bottom: 15px;">{{ note.timestamp.strftime('%d/%m/%Y %H:%M') }}</small>
+            <div style="white-space: pre-wrap; line-height: 1.5;">{{ note.content }}</div>
+        </div>
+        {% else %}
+        <div style="text-align: center; color: var(--text-secondary); padding: 40px; grid-column: 1 / -1;">
+            <i class="far fa-sticky-note fa-3x" style="margin-bottom: 20px;"></i>
+            <p>No tienes notas guardadas.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

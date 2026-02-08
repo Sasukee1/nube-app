@@ -1,0 +1,15 @@
+# Entorno virtual
+venv/
+
+# Archivos de caché de Python
+__pycache__/
+*.pyc
+
+# Base de datos local y otros archivos de instancia
+instance/
+
+# Archivos temporales específicos del editor
+.vscode/
+.idea/
+*.swp
+*.swo

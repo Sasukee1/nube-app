@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Descargador de Video</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="{{ current_theme }}-theme">
+    <div class="container downloader-container">
+        <a href="{{ url_for('index') }}" class="back-link">&larr; Volver a la página principal</a>
+        <h1>Descargador de Video</h1>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for message in messages %}
+                        <div class="flash">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form id="download-form" method="post">
+            <input type="url" name="url" placeholder="Pega la URL del video de YouTube o TikTok aquí..." required>
+            <input type="text" name="category" list="category-list" placeholder="Categoría (ej. videos, musica)">
+            <datalist id="category-list">
+                {% for cat in categories %}
+                <option value="{{ cat }}">
+                {% endfor %}
+            </datalist>
+            <button type="submit">Descargar</button>
+        </form>
+        
+        <div id="loading-message">
+            <p>Descargando video... Esto puede tardar varios minutos. Por favor, espera.</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('download-form').addEventListener('submit', function() {
+            document.getElementById('download-form').style.display = 'none';
+            document.getElementById('loading-message').style.display = 'block';
+        });
+    </script>
+</body>
+</html>

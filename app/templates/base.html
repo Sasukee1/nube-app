@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NubeLocal - {% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Fallback for offline icons if needed */
+    </style>
+</head>
+
+<body class="{{ current_theme }}">
+
+    {% if session.get('user_id') %}
+    <div class="mobile-header">
+        <a href="{{ url_for('main.index') }}" class="brand-mobile">
+            <i class="fas fa-cloud"></i> <span>NubeLocal</span>
+        </a>
+        <button class="menu-toggle" id="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+
+    <nav class="sidebar" id="sidebar">
+        <a href="{{ url_for('main.index') }}" class="brand">
+            <i class="fas fa-cloud"></i> <span>NubeLocal</span>
+        </a>
+
+        <ul class="nav-links">
+            <li class="nav-item">
+                <a href="{{ url_for('main.index') }}"
+                    class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}">
+                    <i class="fas fa-home"></i> <span>Inicio</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('main.downloader') }}"
+                    class="nav-link {% if request.endpoint == 'main.downloader' %}active{% endif %}">
+                    <i class="fas fa-download"></i> <span>Descargas</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('tools.monitor') }}"
+                    class="nav-link {% if request.endpoint == 'tools.monitor' %}active{% endif %}">
+                    <i class="fas fa-chart-line"></i> <span>Monitor</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('tools.notes') }}"
+                    class="nav-link {% if request.endpoint == 'tools.notes' %}active{% endif %}">
+                    <i class="fas fa-sticky-note"></i> <span>Notas</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('tools.todo') }}"
+                    class="nav-link {% if request.endpoint == 'tools.todo' %}active{% endif %}">
+                    <i class="fas fa-check-square"></i> <span>Tarea</span>
+                </a>
+            </li>
+
+            {% if session.get('role') == 'admin' %}
+            <li class="nav-item">
+                <a href="{{ url_for('admin.panel') }}"
+                    class="nav-link {% if request.endpoint.startswith('admin.') %}active{% endif %}">
+                    <i class="fas fa-shield-alt"></i> <span>Admin</span>
+                </a>
+            </li>
+            {% endif %}
+        <ul class="nav-links">
+            <li class="nav-item">
+                <a href="{{ url_for('profile.change_password') }}" class="nav-link">
+                    <i class="fas fa-key"></i> <span>Cambiar Contraseña</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ url_for('auth.logout') }}" class="nav-link">
+                    <i class="fas fa-sign-out-alt"></i> <span>Salir</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    <div class="overlay" id="overlay"></div>
+    {% endif %}
+
+    <main class="main-content">
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            {% for message in messages %}
+            <div class="flash">
+                <span>{{ message }}</span>
+                <i class="fas fa-times" onclick="this.parentElement.style.display='none'" style="cursor:pointer"></i>
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+        </div>
+
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block scripts %}{% endblock %}
+
+    <script>
+        const menuToggle = document.getElementById('menu-toggle');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const mainContent = document.querySelector('.main-content');
+
+        if (menuToggle) {
+            menuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+            });
+
+            overlay.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            });
+        }
+    </script>
+</body>
+
+</html>

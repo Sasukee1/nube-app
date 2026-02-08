@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Inicio{% endblock %}
+
+{% block content %}
+<div class="grid grid-2" style="grid-template-columns: 2fr 1fr;">
+
+    <!-- Sección de Archivos -->
+    <div>
+        <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px;">
+                <a href="{{ url_for('main.index', category_name='all') }}"
+                    class="btn {% if current_category == 'all' %}btn-primary{% else %}btn-secondary{% endif %}"
+                    style="background: {% if current_category != 'all' %}transparent; border: 1px solid var(--border){% endif %}">Todo</a>
+                {% for cat in categories %}
+                <a href="{{ url_for('main.index', category_name=cat) }}"
+                    class="btn {% if current_category == cat %}btn-primary{% else %}btn-secondary{% endif %}"
+                    style="background: {% if current_category != cat %}transparent; border: 1px solid var(--border){% endif %}">{{
+                    cat|capitalize }}</a>
+                {% endfor %}
+            </div>
+            <button class="btn btn-primary" onclick="document.getElementById('upload-modal').style.display='block'"><i
+                    class="fas fa-upload"></i> Subir</button>
+        </div>
+
+        <div class="grid grid-auto">
+            {% for file in files %}
+            {% set ext = file.filename.split('.')[-1].lower() %}
+            <div class="card file-card" style="padding: 0; margin-bottom: 0;">
+                <div class="preview">
+                    {% if ext in ['png', 'jpg', 'jpeg', 'gif', 'webp'] %}
+                    <img src="{{ url_for('main.download_file', file_id=file.id) }}" loading="lazy">
+                    {% elif ext in ['mp4', 'webm', 'ogg'] %}
+                    <video src="{{ url_for('main.download_file', file_id=file.id) }}" controls
+                        preload="metadata"></video>
+                    {% elif ext == 'pdf' %}
+                    <i class="fas fa-file-pdf fa-3x" style="color: #cf6679;"></i>
+                    {% else %}
+                    <i class="fas fa-file fa-3x" style="color: var(--text-secondary);"></i>
+                    {% endif %}
+                </div>
+                <div class="file-info">
+                    <div
+                        style="font-weight: bold; margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        {{ file.filename }}</div>
+                    <div
+                        style="display: flex; justify-content: space-between; font-size: 0.8em; color: var(--text-secondary);">
+                        <span>{{ file.author.username if file.author else 'Unknown' }}</span>
+                        <span>{{ file.upload_date.strftime('%d/%m') }}</span>
+                    </div>
+                </div>
+                <div style="border-top: 1px solid var(--border); display: flex;">
+                    <a href="{{ url_for('main.download_file', file_id=file.id) }}" target="_blank" class="btn"
+                        style="flex-grow: 1; border-radius: 0; background: transparent; justify-content: center;"><i
+                            class="fas fa-eye"></i></a>
+
+                    {% if role == 'admin' or (file.author and file.author.username == username) %}
+                    <a href="{{ url_for('main.delete_file', file_id=file.id) }}" class="btn"
+                        style="flex-grow: 1; border-radius: 0; background: transparent; color: var(--danger); justify-content: center; border-left: 1px solid var(--border);"
+                        onclick="return confirm('¿Borrar?')"><i class="fas fa-trash"></i></a>
+                    {% endif %}
+                </div>
+            </div>
+            {% else %}
+            <div style="grid-column: 1 / -1; text-align: center; color: var(--text-secondary); padding: 40px;">
+                <i class="fas fa-cloud-upload-alt fa-3x" style="margin-bottom: 20px;"></i>
+                <p>No hay archivos en esta categoría.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Sección de Chat -->
+    <div>
+        <div class="card chat-container" style="position: sticky; top: 20px;">
+            <h3><i class="fas fa-comments"></i> Chat Local</h3>
+            <div class="chat-messages" id="chat-box">
+                <!-- JS will pop this -->
+            </div>
+            <form id="chat-form" style="display: flex; gap: 10px;">
+                <input type="text" id="message-input" class="form-input" style="flex-grow: 1; margin-bottom: 0;"
+                    placeholder="Mensaje..." autocomplete="off">
+                <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i></button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Subida -->
+<div id="upload-modal"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000;">
+    <div class="card" style="width: 400px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+        <h3>Subir Archivo</h3>
+        <form action="{{ url_for('main.upload_file') }}" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" class="form-input" required>
+            <input type="text" name="category" class="form-input" list="category-list"
+                placeholder="Categoría (opcional)">
+            <datalist id="category-list">
+                {% for cat in categories %}
+                <option value="{{ cat }}">
+                    {% endfor %}
+            </datalist>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" class="btn btn-danger"
+                    onclick="document.getElementById('upload-modal').style.display='none'">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Subir</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const chatBox = document.getElementById('chat-box');
+    const chatForm = document.getElementById('chat-form');
+    const msgInput = document.getElementById('message-input');
+    const currentUser = "{{ username }}";
+    const isAdmin = "{{ role }}" === 'admin';
+
+    function scrollToBottom() {
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function fetchMessages() {
+        try {
+            const res = await fetch('{{ url_for("main.get_messages") }}');
+            const data = await res.json();
+
+            chatBox.innerHTML = '';
+            data.forEach(msg => {
+                const div = document.createElement('div');
+                div.className = `message ${msg.user === currentUser ? 'self' : ''}`;
+
+                let actions = '';
+                if (isAdmin) {
+                    actions = `
+                        <div style="font-size: 0.7em; margin-top: 5px; text-align: right; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2px;">
+                            <span style="cursor: pointer; color: var(--danger);" onclick="deleteMessage(${msg.id})">Borrar</span>
+                        </div>
+                    `;
+                }
+
+                div.innerHTML = `
+                    <div style="font-weight: bold; font-size: 0.8em; margin-bottom: 2px; color: var(--accent);">${msg.user} <span style="font-weight: normal; color: var(--text-secondary); float: right;">${msg.timestamp}</span></div>
+                    <div>${msg.text}</div>
+                    ${actions}
+                `;
+                chatBox.appendChild(div);
+            });
+        } catch (e) { console.error(e); }
+    }
+
+    chatForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const text = msgInput.value.trim();
+        if (!text) return;
+
+        const form = new FormData();
+        form.append('message', text);
+
+        await fetch('{{ url_for("main.send_message") }}', { method: 'POST', body: form });
+        msgInput.value = '';
+        fetchMessages().then(scrollToBottom);
+    });
+
+    async function deleteMessage(id) {
+        if (!confirm('¿Borrar mensaje?')) return;
+        await fetch(`/delete_message/${id}`, { method: 'POST' });
+        fetchMessages();
+    }
+
+    setInterval(fetchMessages, 3000);
+    fetchMessages().then(scrollToBottom);
+</script>
+{% endblock %}

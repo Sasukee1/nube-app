@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Monitor del Sistema{% endblock %}
+
+{% block content %}
+<h1>Monitor del Sistema</h1>
+
+<div class="grid grid-3">
+    <!-- CPU -->
+    <div class="card monitor-card" style="text-align: center;">
+        <i class="fas fa-microchip fa-2x" style="color: var(--accent);"></i>
+        <div class="label" style="margin-top: 10px;">CPU</div>
+        <h1>{{ cpu }}%</h1>
+        <div
+            style="width: 100%; background: #333; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 10px;">
+            <div style="width: {{ cpu }}%; background: var(--accent); height: 100%;"></div>
+        </div>
+    </div>
+
+    <!-- RAM -->
+    <div class="card monitor-card" style="text-align: center;">
+        <i class="fas fa-memory fa-2x" style="color: var(--success);"></i>
+        <div class="label" style="margin-top: 10px;">RAM</div>
+        <h1>{{ ram.percent }}%</h1>
+        <small>{{ (ram.used / (1024**3))|round(1) }}GB / {{ (ram.total / (1024**3))|round(1) }}GB</small>
+        <div
+            style="width: 100%; background: #333; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 10px;">
+            <div style="width: {{ ram.percent }}%; background: var(--success); height: 100%;"></div>
+        </div>
+    </div>
+
+    <!-- Disk -->
+    <div class="card monitor-card" style="text-align: center;">
+        <i class="fas fa-hdd fa-2x" style="color: var(--danger);"></i>
+        <div class="label" style="margin-top: 10px;">Disco</div>
+        <h1>{{ disk.percent }}%</h1>
+        <small>{{ (disk.used / (1024**3))|round(1) }}GB / {{ (disk.total / (1024**3))|round(1) }}GB</small>
+        <div
+            style="width: 100%; background: #333; height: 10px; border-radius: 5px; overflow: hidden; margin-top: 10px;">
+            <div style="width: {{ disk.percent }}%; background: var(--danger); height: 100%;"></div>
+        </div>
+    </div>
+</div>
+
+<div style="text-align: center; margin-top: 20px;">
+    <a href="{{ url_for('tools.monitor') }}" class="btn btn-primary"><i class="fas fa-sync"></i> Actualizar</a>
+</div>
+{% endblock %}

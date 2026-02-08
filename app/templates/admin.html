@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Admin</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="{{ current_theme }}-theme">
+    <div class="container admin-container">
+        <h1>Panel de Administración</h1>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for message in messages %}
+                        <div class="flash">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <h2>Usuarios Registrados</h2>
+        <div class="user-list">
+            {% for username, data in users.items() %}
+                <div class="user-item">
+                    <div class="user-info">
+                        <span class="username">{{ username }}</span>
+                        <span class="status status-{{ data.get('status', 'active') }}">{{ data.get('status', 'active') }}</span>
+                    </div>
+                    <div class="user-actions">
+                        {% if username != 'ADMIN' %}
+                            {% if data.get('status') == 'banned' %}
+                                <a href="{{ url_for('unban_user', username=username) }}" class="btn btn-unban">Desbanear</a>
+                            {% else %}
+                                <a href="{{ url_for('ban_user', username=username) }}" class="btn btn-ban">Banear</a>
+                            {% endif %}
+                            <select onchange="changeUserRole('{{ username }}', this.value)">
+                                <option value="user" {% if data.get('role', 'user') == 'user' %}selected{% endif %}>User</option>
+                                <option value="admin" {% if data.get('role', 'user') == 'admin' %}selected{% endif %}>Admin</option>
+                            </select>
+                            <a href="#" class="btn btn-reset-password" onclick="resetUserPassword('{{ username }}')">Restablecer Contraseña</a>
+                            <a href="#" class="btn btn-delete-user" onclick="deleteUser('{{ username }}')">Eliminar Usuario</a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <h2>Configuración Global</h2>
+        <div class="user-list">
+            <div class="user-item">
+                <div class="user-info">
+                    <span class="username">Tema de la Aplicación</span>
+                </div>
+                <div class="user-actions">
+                    <form action="{{ url_for('admin_set_theme') }}" method="post" style="display: flex; gap: 10px;">
+                        <label>
+                            <input type="radio" name="theme" value="dark" {% if current_theme == 'dark' %}checked{% endif %}> Oscuro
+                        </label>
+                        <label>
+                            <input type="radio" name="theme" value="light" {% if current_theme == 'light' %}checked{% endif %}> Claro
+                        </label>
+                        <button type="submit" class="btn">Aplicar Tema</button>
+                    </form>
+                </div>
+            </div>
+            <div class="user-item">
+                <div class="user-info">
+                    <span class="username">Modo de Mantenimiento</span>
+                </div>
+                <div class="user-actions">
+                    <form action="{{ url_for('admin_toggle_maintenance') }}" method="post">
+                        <button type="submit" class="btn {% if maintenance_mode %}btn-danger{% else %}btn-success{% endif %}">
+                            {% if maintenance_mode %}Desactivar Mantenimiento{% else %}Activar Mantenimiento{% endif %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="user-item">
+                <div class="user-info">
+                    <span class="username">Reiniciar Aplicación</span>
+                </div>
+                <div class="user-actions">
+                    <form action="{{ url_for('admin_restart_app') }}" method="post">
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('¡ADVERTENCIA! ¿Estás seguro de que quieres REINICIAR la aplicación? Esto la detendrá y volverá a iniciar.')">Reiniciar Aplicación</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <a href="{{ url_for('index') }}" class="back-link">&larr; Volver a la página principal</a>
+    </div>
+    
+    <script>
+        function resetUserPassword(username) {
+            const newPassword = prompt(`Introduce la nueva contraseña para ${username}:`);
+            if (newPassword && newPassword.length >= 4) {
+                // Creamos un formulario dinámicamente para enviar la petición POST
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/admin/reset_password/${username}`;
+
+                const passwordInput = document.createElement('input');
+                passwordInput.type = 'hidden';
+                passwordInput.name = 'new_password';
+                passwordInput.value = newPassword;
+                form.appendChild(passwordInput);
+
+                document.body.appendChild(form);
+                form.submit();
+            } else if (newPassword !== null) { // Si no es null, significa que se introdujo algo pero no cumple la longitud
+                alert('La contraseña debe tener al menos 4 caracteres.');
+            }
+        }
+
+        function changeUserRole(username, newRole) {
+            if (confirm(`¿Estás seguro de que quieres cambiar el rol de ${username} a ${newRole}?`)) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/admin/change_role/${username}`;
+
+                const roleInput = document.createElement('input');
+                roleInput.type = 'hidden';
+                roleInput.name = 'new_role';
+                roleInput.value = newRole;
+                form.appendChild(roleInput);
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        function deleteUser(username) {
+            if (confirm(`¡ADVERTENCIA! ¿Estás seguro de que quieres eliminar al usuario ${username} PERMANENTEMENTE? Esta acción no se puede deshacer y eliminará también todos sus archivos y mensajes.`)) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/admin/delete_user/${username}`;
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    </script>
+</body>
+</html>

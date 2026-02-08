@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Lista de Tareas{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: auto;">
+    <div class="card">
+        <h3><i class="fas fa-check-double"></i> Mis Tareas</h3>
+
+        <form method="post" style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <input type="text" name="content" class="form-input" style="margin-bottom: 0;" placeholder="Nueva tarea..."
+                required>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i></button>
+        </form>
+
+        <ul style="list-style: none; padding: 0;">
+            {% for task in tasks %}
+            <li
+                style="display: flex; align-items: center; padding: 10px; background: var(--bg-color); border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--border);">
+                <a href="{{ url_for('tools.toggle_task', task_id=task.id) }}"
+                    style="color: {% if task.is_done %}var(--success){% else %}var(--text-secondary){% endif %}; margin-right: 15px;">
+                    <i class="fas {% if task.is_done %}fa-check-circle{% else %}fa-circle{% endif %} fa-lg"></i>
+                </a>
+
+                <span
+                    style="flex-grow: 1; text-decoration: {% if task.is_done %}line-through{% else %}none{% endif %}; color: {% if task.is_done %}var(--text-secondary){% else %}var(--text-primary){% endif %};">
+                    {{ task.content }}
+                </span>
+
+                <a href="{{ url_for('tools.delete_task', task_id=task.id) }}"
+                    style="color: var(--danger); opacity: 0.7; transition: opacity 0.2s;"
+                    onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.7">
+                    <i class="fas fa-trash"></i>
+                </a>
+            </li>
+            {% else %}
+            <div style="text-align: center; color: var(--text-secondary); padding: 20px;">
+                <p>¡Estás al día! No hay tareas pendientes.</p>
+            </div>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endblock %}

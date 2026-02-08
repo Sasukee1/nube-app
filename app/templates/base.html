@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NubeLocal - {% block title %}{% endblock %}</title>
+    <title>NubeSocial - {% block title %}{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -17,7 +17,7 @@
     {% if session.get('user_id') %}
     <div class="mobile-header">
         <a href="{{ url_for('main.index') }}" class="brand-mobile">
-            <i class="fas fa-cloud"></i> <span>NubeLocal</span>
+            <i class="fas fa-cloud"></i> <span>NubeSocial</span>
         </a>
         <button class="menu-toggle" id="menu-toggle">
             <i class="fas fa-bars"></i>
@@ -26,7 +26,7 @@
 
     <nav class="sidebar" id="sidebar">
         <a href="{{ url_for('main.index') }}" class="brand">
-            <i class="fas fa-cloud"></i> <span>NubeLocal</span>
+            <i class="fas fa-cloud"></i> <span>NubeSocial</span>
         </a>
 
         <ul class="nav-links">

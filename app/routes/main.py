@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, jsonify, current_app # current_app añadido
 import vercel_blob # Nueva importación
 from werkzeug.utils import secure_filename
 from app import db

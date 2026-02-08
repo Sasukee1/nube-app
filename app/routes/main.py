@@ -76,7 +76,7 @@ def upload_file():
     try:
         # La función put sube el contenido del stream
         blob_data = vercel_blob.put(
-            pathname=original_filename,
+            original_filename,
             body=file_to_upload.stream,
             content_type=file_to_upload.content_type
         )
@@ -221,9 +221,8 @@ def downloader():
                     original_filename = info.get('title', 'youtube_video') + ".mp4"
                 
                 with open(temp_filepath, 'rb') as f_read:
-                    blob_data = vercel_blob.put(
-                        pathname=original_filename,
-                        body=f_read,
+                                blob_data = vercel_blob.put(
+                                    original_filename,                        body=f_read,
                         content_type='video/mp4'
                     )
                 
@@ -256,9 +255,8 @@ def downloader():
                         
                         original_filename = f"tiktok_{int(time.time())}.mp4"
                         with open(temp_filepath, 'rb') as f_read:
-                            blob_data = vercel_blob.put(
-                                pathname=original_filename,
-                                body=f_read,
+                                        blob_data = vercel_blob.put(
+                                            original_filename,                                body=f_read,
                                 content_type='video/mp4'
                             )
                         
